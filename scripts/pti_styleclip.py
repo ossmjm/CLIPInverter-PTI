@@ -2,7 +2,7 @@ import glob
 from argparse import Namespace
 from configs import paths_config
 from models.StyleCLIP.mapper.scripts.inference import run
-from scripts.run_pti import run_PTI
+from run_pti import run_PTI
 
 meta_data = {
     'afro': ['afro', False, False, True],

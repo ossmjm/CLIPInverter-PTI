@@ -1,10 +1,10 @@
+# localitly_regulizer.py (unchanged from your provided version, included for completeness)
 import torch
 import numpy as np
 import wandb
 from criteria import l2_loss
 from configs import hyperparameters
 from configs import global_config
-
 
 class Space_Regulizer:
     def __init__(self, original_G, lpips_net):
@@ -18,7 +18,6 @@ class Space_Regulizer:
         direction_to_move = hyperparameters.regulizer_alpha * interpolation_direction / interpolation_direction_norm
         result_w = fixed_w + direction_to_move
         self.morphing_regulizer_alpha * fixed_w + (1 - self.morphing_regulizer_alpha) * new_w_code
-
         return result_w
 
     def get_image_from_ws(self, w_codes, G):
@@ -26,7 +25,6 @@ class Space_Regulizer:
 
     def ball_holder_loss_lazy(self, new_G, num_of_sampled_latents, w_batch, use_wandb=False):
         loss = 0.0
-
         z_samples = np.random.randn(num_of_sampled_latents, self.original_G.z_dim)
         w_samples = self.original_G.mapping(torch.from_numpy(z_samples).to(global_config.device), None,
                                             truncation_psi=0.5)
@@ -54,6 +52,6 @@ class Space_Regulizer:
 
         return loss / len(territory_indicator_ws)
 
-    def space_regulizer_loss(self, new_G, w_batch, use_wandb):
+    def space_regulizer_loss(self, new_G, w_batch, use_wandb, txt_embed=None):
         ret_val = self.ball_holder_loss_lazy(new_G, hyperparameters.latent_ball_num_of_samples, w_batch, use_wandb)
         return ret_val
