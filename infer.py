@@ -27,11 +27,11 @@ def tensor2im(var):
     var = var * 255
     return var.astype('uint8')
 
-def run_alignment(image_path):
+def run_alignment(image_path, output_size=256, transform_size=256):
     import dlib
     from align_faces_parallel import align_face
     predictor = dlib.shape_predictor("pretrained_models/shape_predictor_68_face_landmarks.dat")
-    aligned_image = align_face(image_path, predictor=predictor)
+    aligned_image = align_face(image_path, predictor=predictor, output_size= output_size, transform_size=transform_size)
     return aligned_image
 
 def load_model(model_path, e4e_path):
@@ -65,15 +65,16 @@ def manipulate(input_image_path, caption, encoder, adapter, clip_model, device, 
                              [0.5, 0.5, 0.5])])
     input_image_pil = Image.open(input_image_path).convert('RGB')
     aligned_image = run_alignment(input_image_pil)
-    input_image_pil = input_real_transforms(input_image_pil).unsqueeze(0).to(device).float()
-    input_image = input_transforms(aligned_image).unsqueeze(0).to(device).float()
+    aligned_image_loss = run_alignment(input_image_pil, output_size=1024, transform_size=1024)
+    input_image_loss = input_real_transforms(aligned_image_loss).unsqueeze(0).to(device).float()
+    input_image_inversion = input_transforms(aligned_image).unsqueeze(0).to(device).float()
     image_name = os.path.splitext(os.path.basename(input_image_path))[0]
 
     text_input = clip.tokenize(caption).to(device)
     text_features = clip_model.encode_text(text_input).float()
 
     with torch.no_grad():
-        w, features = encoder(input_image, return_latents=True, randomize_noise=False)
+        w, features = encoder(input_image_inversion, return_latents=True, randomize_noise=False)
 
     if use_pti:
         temp_embedding_dir = tempfile.mkdtemp()
@@ -84,7 +85,7 @@ def manipulate(input_image_path, caption, encoder, adapter, clip_model, device, 
         run_name, pti_image = run_PTI(run_name='pti_inference', use_wandb=False, use_multi_id_training=False,
                            preloaded_G=copy.deepcopy(adapter.decoder), preloaded_e4e=encoder,
                            clip_model=clip_model, neutral_prompt=neutral_prompt,
-                           input_image_inversion=input_image, input_image_loss= input_image_pil,image_name=image_name,
+                           input_image_inversion=input_image_inversion, input_image_loss= input_image_loss,image_name=image_name,
                            embedding_dir=temp_embedding_dir, checkpoints_dir=temp_checkpoints_dir,
                            initial_w=w)
         os.makedirs("results", exist_ok=True)
