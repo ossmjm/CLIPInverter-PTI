@@ -88,7 +88,7 @@ def manipulate(input_image_path, caption, encoder, adapter, clip_model, device, 
                            initial_w=w)
 
         tuned_model_path = os.path.join(temp_checkpoints_dir, f'model_{run_name}_{image_name}.pt')
-        torch.serialization.add_safe_globals([Generator])  # Allowlist Generator class
+        torch.serialization.add_safe_globals([Generator, CLIPAdapterWithDecoder])  # Allowlist both classes
         tuned_state = torch.load(tuned_model_path, map_location=device)
         adapter.decoder.load_state_dict(tuned_state, strict=True)
 

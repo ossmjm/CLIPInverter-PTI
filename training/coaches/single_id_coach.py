@@ -50,4 +50,4 @@ class SingleIDCoach(BaseCoach):
                 use_ball_holder = global_config.training_step % hyperparameters.locality_regularization_interval == 0
                 global_config.training_step += 1
 
-        torch.save(self.G, f'{self.checkpoints_dir}/model_{global_config.run_name}_{self.image_name}.pt')
+        torch.save(self.G.state_dict(), f'{self.checkpoints_dir}/model_{global_config.run_name}_{self.image_name}.pt')
