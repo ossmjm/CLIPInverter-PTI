@@ -59,6 +59,7 @@ def manipulate(input_image_path, caption, encoder, adapter, clip_model, device, 
         transforms.ToTensor(),
         transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])])
     input_real_transforms = transforms.Compose([
+        transforms.Resize((1024, 1024)),
         transforms.ToTensor(),
         transforms.Normalize([0.5, 0.5, 0.5],
                              [0.5, 0.5, 0.5])])
