@@ -30,12 +30,14 @@ class SingleIDCoach(BaseCoach):
         with torch.autograd.detect_anomaly():
             for i in tqdm(range(hyperparameters.max_pti_steps)):
                 generated_images = self.forward(w_pivot).unsqueeze(0)
-                print(f"[DEBUG] Step {i}: generated_images requires_grad: {generated_images.requires_grad}")
+                #print(f"[DEBUG] Step {i}: generated_images requires_grad: {generated_images.requires_grad}")
 
                 loss, l2_loss_val, loss_lpips = self.calc_loss(generated_images, real_images_batch, self.image_name,
                                                                self.G, use_ball_holder, w_pivot)
+                if i % 20 == 0:
+                    print(f"Step {i}: loss: {loss.item()}, l2_loss_val: {l2_loss_val.item()}, loss_lpips: {loss_lpips.item()}")
 
-                print(f"[DEBUG] Step {i}: loss requires_grad: {loss.requires_grad}, l2_loss_val: {l2_loss_val.item()}, loss_lpips: {loss_lpips.item()}")
+                #print(f"[DEBUG] Step {i}: loss requires_grad: {loss.requires_grad}, l2_loss_val: {l2_loss_val.item()}, loss_lpips: {loss_lpips.item()}")
 
                 self.optimizer.zero_grad()
 

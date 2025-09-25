@@ -54,7 +54,7 @@ class BaseCoach:
 
         if hyperparameters.pt_l2_lambda > 0:
             l2_loss_val = l2_loss.l2_loss(generated_images, real_images)
-            print(f"[DEBUG] l2_loss_val requires_grad: {l2_loss_val.requires_grad}")
+            #print(f"[DEBUG] l2_loss_val requires_grad: {l2_loss_val.requires_grad}")
             loss += l2_loss_val * hyperparameters.pt_l2_lambda
         if hyperparameters.pt_lpips_lambda > 0:
             with torch.no_grad():
