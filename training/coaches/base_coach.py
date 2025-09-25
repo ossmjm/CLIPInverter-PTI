@@ -49,26 +49,36 @@ class BaseCoach:
     def calc_loss(self, generated_images, real_images, log_name, new_G, use_ball_holder, w_batch):
         loss = 0.0
 
+        # print(f"[DEBUG] generated_images requires_grad: {generated_images.requires_grad}")
+        # print(f"[DEBUG] real_images requires_grad: {real_images.requires_grad}")
+
         if hyperparameters.pt_l2_lambda > 0:
             l2_loss_val = l2_loss.l2_loss(generated_images, real_images)
+            print(f"[DEBUG] l2_loss_val requires_grad: {l2_loss_val.requires_grad}")
             loss += l2_loss_val * hyperparameters.pt_l2_lambda
         if hyperparameters.pt_lpips_lambda > 0:
-            loss_lpips = self.lpips_loss(generated_images, real_images)
-            loss_lpips = torch.squeeze(loss_lpips)
+            with torch.no_grad():
+                loss_lpips = self.lpips_loss(generated_images.detach(), real_images)
+                loss_lpips = torch.squeeze(loss_lpips)
+            # print(f"[DEBUG] loss_lpips requires_grad: {loss_lpips.requires_grad}")
             loss += loss_lpips * hyperparameters.pt_lpips_lambda
 
         if use_ball_holder and hyperparameters.use_locality_regularization:
             ball_holder_loss_val = self.space_regulizer.space_regulizer_loss(new_G, w_batch, use_wandb=self.use_wandb, txt_embed=self.neutral_txt_features)
+            # print(f"[DEBUG] ball_holder_loss_val requires_grad: {ball_holder_loss_val.requires_grad}")
             loss += ball_holder_loss_val
 
+        # print(f"[DEBUG] Total loss requires_grad: {loss.requires_grad}")
         return loss, l2_loss_val, loss_lpips
 
     def forward(self, w):
+        # print(f"[DEBUG] Forward input w requires_grad: {w.requires_grad}")
         if self.neutral_txt_features is not None:
             generated_images, _ = self.G([w], input_is_latent=True, return_latents=False, randomize_noise=False, truncation=1, txt_embed=self.neutral_txt_features)
             generated_images = generated_images.squeeze(0) if generated_images.dim() > 3 else generated_images
         else:
             generated_images = self.G.synthesis(w, noise_mode='const', force_fp32=True)
+        # print(f"[DEBUG] Forward output generated_images requires_grad: {generated_images.requires_grad}")
         return generated_images
 
     def initilize_e4e(self):

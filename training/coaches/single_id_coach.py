@@ -24,20 +24,30 @@ class SingleIDCoach(BaseCoach):
         torch.save(w_pivot, f'{embedding_dir}/0.pt')
         real_images_batch = self.input_image.to(global_config.device)
 
-        for i in tqdm(range(hyperparameters.max_pti_steps)):
-            generated_images = self.forward(w_pivot)
-            loss, l2_loss_val, loss_lpips = self.calc_loss(generated_images, real_images_batch, self.image_name,
-                                                           self.G, use_ball_holder, w_pivot)
+        # print(f"[DEBUG] w_pivot requires_grad: {w_pivot.requires_grad}")
+        # print(f"[DEBUG] real_images_batch requires_grad: {real_images_batch.requires_grad}")
 
-            self.optimizer.zero_grad()
+        with torch.autograd.detect_anomaly():
+            for i in tqdm(range(hyperparameters.max_pti_steps)):
+                generated_images = self.forward(w_pivot).unsqueeze(0)
+                print(f"[DEBUG] Step {i}: generated_images requires_grad: {generated_images.requires_grad}")
 
-            if loss_lpips <= hyperparameters.LPIPS_value_threshold:
-                break
+                loss, l2_loss_val, loss_lpips = self.calc_loss(generated_images, real_images_batch, self.image_name,
+                                                               self.G, use_ball_holder, w_pivot)
 
-            loss.backward()
-            self.optimizer.step()
+                print(f"[DEBUG] Step {i}: loss requires_grad: {loss.requires_grad}, l2_loss_val: {l2_loss_val.item()}, loss_lpips: {loss_lpips.item()}")
 
-            use_ball_holder = global_config.training_step % hyperparameters.locality_regularization_interval == 0
-            global_config.training_step += 1
+                self.optimizer.zero_grad()
+
+                if loss_lpips <= hyperparameters.LPIPS_value_threshold:
+                    break
+
+                loss.backward(retain_graph=True)  # Temporary to debug
+                l2_val = l2_loss_val.item()
+                lpips_val = loss_lpips.item()
+                self.optimizer.step()
+
+                use_ball_holder = global_config.training_step % hyperparameters.locality_regularization_interval == 0
+                global_config.training_step += 1
 
         torch.save(self.G, f'{self.checkpoints_dir}/model_{global_config.run_name}_{self.image_name}.pt')

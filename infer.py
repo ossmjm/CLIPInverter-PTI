@@ -17,6 +17,7 @@ from PIL import Image
 from configs import global_config, hyperparameters
 from run_pti import run_PTI
 from utils.models_utils import toogle_grad
+from models.stylegan2.model_remapper import Generator  # Added for allowlisting
 
 def tensor2im(var):
     var = var.cpu().detach().transpose(0, 2).transpose(0, 1).numpy()
@@ -57,9 +58,13 @@ def manipulate(input_image_path, caption, encoder, adapter, clip_model, device, 
         transforms.Resize((256, 256)),
         transforms.ToTensor(),
         transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])])
-
+    input_real_transforms = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize([0.5, 0.5, 0.5],
+                             [0.5, 0.5, 0.5])])
     input_image_pil = Image.open(input_image_path).convert('RGB')
     aligned_image = run_alignment(input_image_pil)
+    input_image_pil = input_real_transforms(input_image_pil).unsqueeze(0).to(device).float()
     input_image = input_transforms(aligned_image).unsqueeze(0).to(device).float()
     image_name = os.path.splitext(os.path.basename(input_image_path))[0]
 
@@ -78,11 +83,12 @@ def manipulate(input_image_path, caption, encoder, adapter, clip_model, device, 
         run_name = run_PTI(run_name='pti_inference', use_wandb=False, use_multi_id_training=False,
                            preloaded_G=copy.deepcopy(adapter.decoder), preloaded_e4e=encoder,
                            clip_model=clip_model, neutral_prompt=neutral_prompt,
-                           input_image=input_image, image_name=image_name,
+                           input_image=input_image_pil, image_name=image_name,
                            embedding_dir=temp_embedding_dir, checkpoints_dir=temp_checkpoints_dir,
                            initial_w=w)
 
         tuned_model_path = os.path.join(temp_checkpoints_dir, f'model_{run_name}_{image_name}.pt')
+        torch.serialization.add_safe_globals([Generator])  # Allowlist Generator class
         tuned_state = torch.load(tuned_model_path, map_location=device)
         adapter.decoder.load_state_dict(tuned_state, strict=True)
 

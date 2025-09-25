@@ -7,3 +7,5 @@ run_name = ''
 
 ## Input info
 input_data_id = 'temp_input'
+
+training_step = 1

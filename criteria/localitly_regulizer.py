@@ -1,4 +1,3 @@
-# localitly_regulizer.py (unchanged from your provided version, included for completeness)
 import torch
 import numpy as np
 import wandb
@@ -21,37 +20,44 @@ class Space_Regulizer:
         return result_w
 
     def get_image_from_ws(self, w_codes, G):
-        return torch.cat([G.synthesis(w_code, noise_mode='none', force_fp32=True) for w_code in w_codes])
+        return torch.cat([G([w_code], input_is_latent=True, randomize_noise=False, return_latents=False)[0] for w_code in w_codes])
 
     def ball_holder_loss_lazy(self, new_G, num_of_sampled_latents, w_batch, use_wandb=False):
         loss = 0.0
-        z_samples = np.random.randn(num_of_sampled_latents, self.original_G.z_dim)
-        w_samples = self.original_G.mapping(torch.from_numpy(z_samples).to(global_config.device), None,
-                                            truncation_psi=0.5)
+        z_samples = np.random.randn(num_of_sampled_latents, 512)
+        z_samples = torch.from_numpy(z_samples).float().to(global_config.device)
+        _, w_samples = self.original_G([z_samples], input_is_latent=False, return_latents=True)
         territory_indicator_ws = [self.get_morphed_w_code(w_code.unsqueeze(0), w_batch) for w_code in w_samples]
 
         for w_code in territory_indicator_ws:
-            new_img = new_G.synthesis(w_code, noise_mode='none', force_fp32=True)
+            new_img = new_G([w_code], input_is_latent=True, randomize_noise=False, return_latents=False)[0]
             with torch.no_grad():
-                old_img = self.original_G.synthesis(w_code, noise_mode='none', force_fp32=True)
+                old_img = self.original_G([w_code], input_is_latent=True, randomize_noise=False, return_latents=False)[0]
+                # print(f"[DEBUG] new_img requires_grad: {new_img.requires_grad}, old_img requires_grad: {old_img.requires_grad}")
 
             if hyperparameters.regulizer_l2_lambda > 0:
-                l2_loss_val = l2_loss.l2_loss(old_img, new_img)
+                with torch.no_grad():
+                    l2_loss_val = l2_loss.l2_loss(old_img, new_img.detach())
+                    # print(f"[DEBUG] l2_loss_val requires_grad: {l2_loss_val.requires_grad}")
                 if use_wandb:
                     wandb.log({f'space_regulizer_l2_loss_val': l2_loss_val.detach().cpu()},
                               step=global_config.training_step)
                 loss += l2_loss_val * hyperparameters.regulizer_l2_lambda
 
             if hyperparameters.regulizer_lpips_lambda > 0:
-                loss_lpips = self.lpips_loss(old_img, new_img)
-                loss_lpips = torch.mean(torch.squeeze(loss_lpips))
+                with torch.no_grad():
+                    loss_lpips = self.lpips_loss(old_img, new_img.detach())
+                    loss_lpips = torch.mean(torch.squeeze(loss_lpips))
+                    # print(f"[DEBUG] loss_lpips requires_grad: {loss_lpips.requires_grad}")
                 if use_wandb:
                     wandb.log({f'space_regulizer_lpips_loss_val': loss_lpips.detach().cpu()},
                               step=global_config.training_step)
                 loss += loss_lpips * hyperparameters.regulizer_lpips_lambda
 
+        # print(f"[DEBUG] ball_holder_loss_lazy total loss requires_grad: {loss.requires_grad}")
         return loss / len(territory_indicator_ws)
 
     def space_regulizer_loss(self, new_G, w_batch, use_wandb, txt_embed=None):
         ret_val = self.ball_holder_loss_lazy(new_G, hyperparameters.latent_ball_num_of_samples, w_batch, use_wandb)
+        # print(f"[DEBUG] space_regulizer_loss ret_val requires_grad: {ret_val.requires_grad}")
         return ret_val
