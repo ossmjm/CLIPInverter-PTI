@@ -81,12 +81,15 @@ def manipulate(input_image_path, caption, encoder, adapter, clip_model, device, 
 
         hyperparameters.first_inv_type = 'w+'
 
-        run_name = run_PTI(run_name='pti_inference', use_wandb=False, use_multi_id_training=False,
+        run_name, pti_image = run_PTI(run_name='pti_inference', use_wandb=False, use_multi_id_training=False,
                            preloaded_G=copy.deepcopy(adapter.decoder), preloaded_e4e=encoder,
                            clip_model=clip_model, neutral_prompt=neutral_prompt,
                            input_image=input_image_pil, image_name=image_name,
                            embedding_dir=temp_embedding_dir, checkpoints_dir=temp_checkpoints_dir,
                            initial_w=w)
+
+        filename = os.path.splitext(os.path.basename(input_image_path))[0]
+        pti_image.save(f"results/pti_result_{filename}.png")
 
         tuned_model_path = os.path.join(temp_checkpoints_dir, f'model_{run_name}_{image_name}.pt')
         torch.serialization.add_safe_globals([Generator, CLIPAdapterWithDecoder])  # Allowlist both classes

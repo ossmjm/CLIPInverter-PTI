@@ -26,7 +26,6 @@ class SingleIDCoach(BaseCoach):
 
         # print(f"[DEBUG] w_pivot requires_grad: {w_pivot.requires_grad}")
         # print(f"[DEBUG] real_images_batch requires_grad: {real_images_batch.requires_grad}")
-
         with torch.autograd.detect_anomaly():
             for i in tqdm(range(hyperparameters.max_pti_steps)):
                 generated_images = self.forward(w_pivot).unsqueeze(0)
@@ -53,3 +52,10 @@ class SingleIDCoach(BaseCoach):
                 global_config.training_step += 1
 
         torch.save(self.G.state_dict(), f'{self.checkpoints_dir}/model_{global_config.run_name}_{self.image_name}.pt')
+
+        # produce final image in eval mode, no grads
+        self.G.eval()
+        with torch.no_grad():
+            final_img = self.forward(w_pivot).unsqueeze(0).detach().cpu()
+
+        return final_img

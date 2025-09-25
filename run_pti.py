@@ -30,9 +30,9 @@ def run_PTI(run_name='', use_wandb=False, use_multi_id_training=False, preloaded
         coach = MultiIDCoach(None, use_wandb)  # DataLoader not needed
     else:
         coach = SingleIDCoach(input_image, image_name, use_wandb, embedding_dir_path, checkpoints_dir, preloaded_G, preloaded_e4e, neutral_txt_features)
-    coach.train(initial_w)
+    result_image = coach.train(initial_w)
 
-    return global_config.run_name
+    return global_config.run_name, result_image
 
 if __name__ == '__main__':
     run_PTI(run_name='', use_wandb=False, use_multi_id_training=False)
