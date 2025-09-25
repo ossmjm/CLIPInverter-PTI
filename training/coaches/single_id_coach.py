@@ -8,9 +8,7 @@ class SingleIDCoach(BaseCoach):
     def __init__(self, input_image_inversion, input_image_loss, image_name, use_wandb, embedding_dir_path, checkpoints_dir, preloaded_G, preloaded_e4e, neutral_txt_features):
         self.embedding_dir_path = embedding_dir_path
         self.checkpoints_dir = checkpoints_dir
-        self.input_image_loss = input_image_loss
-        self.input_image_inversion = input_image_inversion
-        super().__init__(image_name, use_wandb, preloaded_G, preloaded_e4e, neutral_txt_features)
+        super().__init__(input_image_inversion,input_image_loss, image_name, use_wandb, preloaded_G, preloaded_e4e, neutral_txt_features)
 
     def train(self, initial_w=None):
         use_ball_holder = True

@@ -10,9 +10,10 @@ import copy
 from utils.models_utils import toogle_grad
 
 class BaseCoach:
-    def __init__(self, input_image, image_name, use_wandb, preloaded_G, preloaded_e4e, neutral_txt_features):
+    def __init__(self, input_image_inversion, input_image_loss, image_name, use_wandb, preloaded_G, preloaded_e4e, neutral_txt_features):
         self.use_wandb = use_wandb
-        self.input_image = input_image
+        self.input_image_loss = input_image_loss
+        self.input_image_inversion = input_image_inversion
         self.image_name = image_name
         self.G = preloaded_G
         self.original_G = copy.deepcopy(preloaded_G)
