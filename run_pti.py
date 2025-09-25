@@ -5,7 +5,7 @@ from configs import global_config, hyperparameters
 from training.coaches.multi_id_coach import MultiIDCoach
 from training.coaches.single_id_coach import SingleIDCoach
 import clip
-def run_PTI(run_name='', use_wandb=False, use_multi_id_training=False, preloaded_G=None, preloaded_e4e=None, clip_model=None, neutral_prompt=None, input_image=None, image_name=None, embedding_dir=None, checkpoints_dir=None, initial_w=None):
+def run_PTI(run_name='', use_wandb=False, use_multi_id_training=False, preloaded_G=None, preloaded_e4e=None, clip_model=None, neutral_prompt=None, input_image_inversion=None,input_image_loss = None, image_name=None, embedding_dir=None, checkpoints_dir=None, initial_w=None):
     os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
     os.environ['CUDA_VISIBLE_DEVICES'] = global_config.cuda_visible_devices
 
@@ -29,7 +29,7 @@ def run_PTI(run_name='', use_wandb=False, use_multi_id_training=False, preloaded
     if use_multi_id_training:
         coach = MultiIDCoach(None, use_wandb)  # DataLoader not needed
     else:
-        coach = SingleIDCoach(input_image, image_name, use_wandb, embedding_dir_path, checkpoints_dir, preloaded_G, preloaded_e4e, neutral_txt_features)
+        coach = SingleIDCoach(input_image_inversion,input_image_loss, image_name, use_wandb, embedding_dir_path, checkpoints_dir, preloaded_G, preloaded_e4e, neutral_txt_features)
     result_image = coach.train(initial_w)
 
     return global_config.run_name, result_image

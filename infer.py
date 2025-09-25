@@ -84,10 +84,13 @@ def manipulate(input_image_path, caption, encoder, adapter, clip_model, device, 
         run_name, pti_image = run_PTI(run_name='pti_inference', use_wandb=False, use_multi_id_training=False,
                            preloaded_G=copy.deepcopy(adapter.decoder), preloaded_e4e=encoder,
                            clip_model=clip_model, neutral_prompt=neutral_prompt,
-                           input_image=input_image_pil, image_name=image_name,
+                           input_image_inversion=input_image, input_image_loss= input_image_pil,image_name=image_name,
                            embedding_dir=temp_embedding_dir, checkpoints_dir=temp_checkpoints_dir,
                            initial_w=w)
-
+        os.makedirs("results", exist_ok=True)
+        pti_image = pti_image.squeeze(0)
+        pti_image = tensor2im(pti_image)
+        pti_image = Image.fromarray(pti_image)
         filename = os.path.splitext(os.path.basename(input_image_path))[0]
         pti_image.save(f"results/pti_result_{filename}.png")
 
@@ -115,7 +118,6 @@ def main(args):
     encoder, adapter, clip_model, device = load_model(args.model_path, args.e4e_path)
     result_image = manipulate(args.input_image_path, args.caption, encoder, adapter, clip_model, device,
                               use_pti=args.use_pti, neutral_prompt=args.neutral_prompt)
-    os.makedirs("results", exist_ok=True)
     filename = os.path.splitext(os.path.basename(args.input_image_path))[0]
     result_image.save(f"results/result_{filename}.png")
 

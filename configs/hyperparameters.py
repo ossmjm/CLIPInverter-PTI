@@ -16,7 +16,7 @@ pt_lpips_lambda = 1
 
 ## Steps
 LPIPS_value_threshold = 0.05
-max_pti_steps = 100
+max_pti_steps = 200
 
 ## Optimization
 pti_learning_rate = 3e-4

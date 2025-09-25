@@ -5,10 +5,12 @@ from configs import hyperparameters, global_config
 from training.coaches.base_coach import BaseCoach
 
 class SingleIDCoach(BaseCoach):
-    def __init__(self, input_image, image_name, use_wandb, embedding_dir_path, checkpoints_dir, preloaded_G, preloaded_e4e, neutral_txt_features):
+    def __init__(self, input_image_inversion, input_image_loss, image_name, use_wandb, embedding_dir_path, checkpoints_dir, preloaded_G, preloaded_e4e, neutral_txt_features):
         self.embedding_dir_path = embedding_dir_path
         self.checkpoints_dir = checkpoints_dir
-        super().__init__(input_image, image_name, use_wandb, preloaded_G, preloaded_e4e, neutral_txt_features)
+        self.input_image_loss = input_image_loss
+        self.input_image_inversion = input_image_inversion
+        super().__init__(image_name, use_wandb, preloaded_G, preloaded_e4e, neutral_txt_features)
 
     def train(self, initial_w=None):
         use_ball_holder = True
@@ -18,11 +20,11 @@ class SingleIDCoach(BaseCoach):
         embedding_dir = f'{self.embedding_dir_path}/{self.image_name}'
         os.makedirs(embedding_dir, exist_ok=True)
 
-        w_pivot = self.get_inversion(self.embedding_dir_path, self.image_name, self.input_image, initial_w)
+        w_pivot = self.get_inversion(self.embedding_dir_path, self.image_name, self.input_image_inversion, initial_w)
         w_pivot = w_pivot.to(global_config.device)
 
         torch.save(w_pivot, f'{embedding_dir}/0.pt')
-        real_images_batch = self.input_image.to(global_config.device)
+        real_images_batch = self.input_image_loss.to(global_config.device)
 
         # print(f"[DEBUG] w_pivot requires_grad: {w_pivot.requires_grad}")
         # print(f"[DEBUG] real_images_batch requires_grad: {real_images_batch.requires_grad}")
