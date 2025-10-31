@@ -109,7 +109,7 @@ Results are saved in `results/`.
 
 ## References
 
-* [CLIPInverter (Baykal et al., ACM TOG 2023)]([https://github.com/williamyang1991/CLIPInverter](https://github.com/johnberg1/CLIPInverter))
+* [CLIPInverter (Baykal et al., ACM TOG 2023)](https://github.com/johnberg1/CLIPInverter)
 * [PTI (Roich et al., ICCV 2021)](https://github.com/danielroich/PTI)
   
 
