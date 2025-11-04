@@ -78,8 +78,8 @@ class BaseCoach:
             generated_images, _ = self.G([w], input_is_latent=True, return_latents=False, randomize_noise=False, truncation=1, txt_embed=self.neutral_txt_features)
             generated_images = generated_images.squeeze(0) if generated_images.dim() > 3 else generated_images
         else:
-            generated_images = self.G.synthesis(w, noise_mode='const', force_fp32=True)
-        # print(f"[DEBUG] Forward output generated_images requires_grad: {generated_images.requires_grad}")
+            generated_images, _ = self.G([w], input_is_latent=True, return_latents=False, randomize_noise=False, truncation=1)       # print(f"[DEBUG] Forward output generated_images requires_grad: {generated_images.requires_grad}")
+            generated_images = generated_images.squeeze(0) if generated_images.dim() > 3 else generated_images
         return generated_images
 
     def initilize_e4e(self):
