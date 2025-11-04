@@ -19,7 +19,7 @@ This combination enables high-quality, text-guided edits (e.g., hair color, expr
 ## Installation
 
 ```bash
-git clone https://github.com/your-username/CLIPInverter-PTI.git
+git clone https://github.com/ossmjm/CLIPInverter-PTI.git
 cd CLIPInverter-PTI
 
 conda create -n clippti python=3.8 -y
