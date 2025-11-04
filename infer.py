@@ -84,7 +84,7 @@ def manipulate(input_image_path, caption, encoder, adapter, clip_model, device, 
 
         run_name, pti_image = run_PTI(run_name='pti_inference', use_wandb=False, use_multi_id_training=False,
                            preloaded_G=copy.deepcopy(adapter.decoder), preloaded_e4e=encoder,
-                           clip_model=clip_model, neutral_prompt=neutral_prompt,
+                           clip_model=clip_model, neutral_prompt=None,
                            input_image_inversion=input_image_inversion, input_image_loss= input_image_loss,image_name=image_name,
                            embedding_dir=temp_embedding_dir, checkpoints_dir=temp_checkpoints_dir,
                            initial_w=w)
